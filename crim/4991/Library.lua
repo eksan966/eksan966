@@ -14,8 +14,23 @@ local TweenService = cloneref(game:GetService('TweenService'));
 local RenderStepped = RunService.RenderStepped;
 local LocalPlayer = Players.LocalPlayer;
 
--- Detect if running on mobile
-local IsMobile = game:GetService("UserInputService"):GetPlatform() == Enum.Platform.Mobile or game:GetService("UserInputService"):GetPlatform() == Enum.Platform.Tablet;
+-- Detect if running on mobile (safer detection method)
+local IsMobile = false
+pcall(function()
+    local Platform = game:GetService("UserInputService"):GetPlatform()
+    -- Try both methods for maximum compatibility
+    if Platform then
+        local PlatformStr = tostring(Platform)
+        IsMobile = string.find(PlatformStr, "Mobile") ~= nil or string.find(PlatformStr, "Tablet") ~= nil or string.find(PlatformStr, "Phone") ~= nil
+    end
+    -- Also check if Mouse is nil as alternative detection
+    if LocalPlayer then
+        local TestMouse = LocalPlayer:GetMouse()
+        if not TestMouse then
+            IsMobile = true
+        end
+    end
+end)
 
 -- Get Mouse object (only works on desktop, nil on mobile)
 local Mouse = LocalPlayer and LocalPlayer:GetMouse() or nil;
