@@ -13,10 +13,12 @@ local TweenService = cloneref(game:GetService('TweenService'));
 
 local RenderStepped = RunService.RenderStepped;
 local LocalPlayer = Players.LocalPlayer;
-local Mouse = LocalPlayer:GetMouse();
 
 -- Detect if running on mobile
 local IsMobile = game:GetService("UserInputService"):GetPlatform() == Enum.Platform.Mobile or game:GetService("UserInputService"):GetPlatform() == Enum.Platform.Tablet;
+
+-- Get Mouse object (only works on desktop, nil on mobile)
+local Mouse = LocalPlayer and LocalPlayer:GetMouse() or nil;
 
 local ScreenGui = Instance.new('ScreenGui');
 
@@ -183,9 +185,10 @@ function Library:MakeDraggable(Instance, Cutoff)
 
     Instance.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
             local ObjPos = Vector2.new(
-                Mouse.X - Instance.AbsolutePosition.X,
-                Mouse.Y - Instance.AbsolutePosition.Y
+                MousePos.X - Instance.AbsolutePosition.X,
+                MousePos.Y - Instance.AbsolutePosition.Y
             );
 
             if ObjPos.Y > (Cutoff or 40) then
@@ -193,11 +196,12 @@ function Library:MakeDraggable(Instance, Cutoff)
             end;
 
             while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+                local CurrentMousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
                 Instance.Position = UDim2.new(
                     0,
-                    Mouse.X - ObjPos.X + (Instance.Size.X.Offset * Instance.AnchorPoint.X),
+                    CurrentMousePos.X - ObjPos.X + (Instance.Size.X.Offset * Instance.AnchorPoint.X),
                     0,
-                    Mouse.Y - ObjPos.Y + (Instance.Size.Y.Offset * Instance.AnchorPoint.Y)
+                    CurrentMousePos.Y - ObjPos.Y + (Instance.Size.Y.Offset * Instance.AnchorPoint.Y)
                 );
 
                 RenderStepped:Wait();
@@ -249,12 +253,14 @@ function Library:AddToolTip(InfoStr, HoverInstance)
 
         IsHovering = true
 
-        Tooltip.Position = UDim2.fromOffset(Mouse.X + 15, Mouse.Y + 12)
+        local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
+        Tooltip.Position = UDim2.fromOffset(MousePos.X + 15, MousePos.Y + 12)
         Tooltip.Visible = true
 
         while IsHovering do
             RunService.Heartbeat:Wait()
-            Tooltip.Position = UDim2.fromOffset(Mouse.X + 15, Mouse.Y + 12)
+            local CurrentMousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
+            Tooltip.Position = UDim2.fromOffset(CurrentMousePos.X + 15, CurrentMousePos.Y + 12)
         end
     end)
 
@@ -291,11 +297,12 @@ function Library:OnHighlight(HighlightInstance, Instance, Properties, Properties
 end;
 
 function Library:MouseIsOverOpenedFrame()
+    local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
     for Frame, _ in next, Library.OpenedFrames do
         local AbsPos, AbsSize = Frame.AbsolutePosition, Frame.AbsoluteSize;
 
-        if Mouse.X >= AbsPos.X and Mouse.X <= AbsPos.X + AbsSize.X
-            and Mouse.Y >= AbsPos.Y and Mouse.Y <= AbsPos.Y + AbsSize.Y then
+        if MousePos.X >= AbsPos.X and MousePos.X <= AbsPos.X + AbsSize.X
+            and MousePos.Y >= AbsPos.Y and MousePos.Y <= AbsPos.Y + AbsSize.Y then
 
             return true;
         end;
@@ -303,10 +310,11 @@ function Library:MouseIsOverOpenedFrame()
 end;
 
 function Library:IsMouseOverFrame(Frame)
+    local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
     local AbsPos, AbsSize = Frame.AbsolutePosition, Frame.AbsoluteSize;
 
-    if Mouse.X >= AbsPos.X and Mouse.X <= AbsPos.X + AbsSize.X
-        and Mouse.Y >= AbsPos.Y and Mouse.Y <= AbsPos.Y + AbsSize.Y then
+    if MousePos.X >= AbsPos.X and MousePos.X <= AbsPos.X + AbsSize.X
+        and MousePos.Y >= AbsPos.Y and MousePos.Y <= AbsPos.Y + AbsSize.Y then
 
         return true;
     end;
@@ -903,13 +911,14 @@ do
         SatVibMap.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                 while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+                    local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
                     local MinX = SatVibMap.AbsolutePosition.X;
                     local MaxX = MinX + SatVibMap.AbsoluteSize.X;
-                    local MouseX = math.clamp(Mouse.X, MinX, MaxX);
+                    local MouseX = math.clamp(MousePos.X, MinX, MaxX);
 
                     local MinY = SatVibMap.AbsolutePosition.Y;
                     local MaxY = MinY + SatVibMap.AbsoluteSize.Y;
-                    local MouseY = math.clamp(Mouse.Y, MinY, MaxY);
+                    local MouseY = math.clamp(MousePos.Y, MinY, MaxY);
 
                     ColorPicker.Sat = (MouseX - MinX) / (MaxX - MinX);
                     ColorPicker.Vib = 1 - ((MouseY - MinY) / (MaxY - MinY));
@@ -925,9 +934,10 @@ do
         HueSelectorInner.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                 while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+                    local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
                     local MinY = HueSelectorInner.AbsolutePosition.Y;
                     local MaxY = MinY + HueSelectorInner.AbsoluteSize.Y;
-                    local MouseY = math.clamp(Mouse.Y, MinY, MaxY);
+                    local MouseY = math.clamp(MousePos.Y, MinY, MaxY);
 
                     ColorPicker.Hue = ((MouseY - MinY) / (MaxY - MinY));
                     ColorPicker:Display();
@@ -957,9 +967,10 @@ do
             TransparencyBoxInner.InputBegan:Connect(function(Input)
                 if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                     while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+                        local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
                         local MinX = TransparencyBoxInner.AbsolutePosition.X;
                         local MaxX = MinX + TransparencyBoxInner.AbsoluteSize.X;
-                        local MouseX = math.clamp(Mouse.X, MinX, MaxX);
+                        local MouseX = math.clamp(MousePos.X, MinX, MaxX);
 
                         ColorPicker.Transparency = 1 - ((MouseX - MinX) / (MaxX - MinX));
 
@@ -975,10 +986,11 @@ do
 
         Library:GiveSignal(InputService.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
                 local AbsPos, AbsSize = PickerFrameOuter.AbsolutePosition, PickerFrameOuter.AbsoluteSize;
 
-                if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X
-                    or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y then
+                if MousePos.X < AbsPos.X or MousePos.X > AbsPos.X + AbsSize.X
+                    or MousePos.Y < (AbsPos.Y - 20 - 1) or MousePos.Y > AbsPos.Y + AbsSize.Y then
 
                     ColorPicker:Hide();
                 end;
@@ -1307,10 +1319,11 @@ do
             end;
 
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
                 local AbsPos, AbsSize = ModeSelectOuter.AbsolutePosition, ModeSelectOuter.AbsoluteSize;
 
-                if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X
-                    or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y then
+                if MousePos.X < AbsPos.X or MousePos.X > AbsPos.X + AbsSize.X
+                    or MousePos.Y < (AbsPos.Y - 20 - 1) or MousePos.Y > AbsPos.Y + AbsSize.Y then
 
                     ModeSelectOuter.Visible = false;
                 end;
@@ -2171,12 +2184,14 @@ local targetSize = UDim2.new(0, math.ceil(Library:MapValue(Slider.Value, Slider.
 
         SliderInner.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 and not Library:MouseIsOverOpenedFrame() then
-                local mPos = Mouse.X;
+                local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
+                local mPos = MousePos.X;
                 local gPos = Fill.Size.X.Offset;
                 local Diff = mPos - (Fill.AbsolutePosition.X + gPos);
 
                 while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
-                    local nMPos = Mouse.X;
+                    local CurrentMousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
+                    local nMPos = CurrentMousePos.X;
                     local nX = math.clamp(gPos + (nMPos - mPos) + Diff, 0, Slider.MaxSize);
 
                     local nValue = Slider:GetValueFromXOffset(nX);
@@ -2599,10 +2614,11 @@ local targetSize = UDim2.new(0, math.ceil(Library:MapValue(Slider.Value, Slider.
 
         InputService.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local MousePos = Mouse and Vector2.new(Mouse.X, Mouse.Y) or InputService:GetMouseLocation()
                 local AbsPos, AbsSize = ListOuter.AbsolutePosition, ListOuter.AbsoluteSize;
 
-                if Mouse.X < AbsPos.X or Mouse.X > AbsPos.X + AbsSize.X
-                    or Mouse.Y < (AbsPos.Y - 20 - 1) or Mouse.Y > AbsPos.Y + AbsSize.Y then
+                if MousePos.X < AbsPos.X or MousePos.X > AbsPos.X + AbsSize.X
+                    or MousePos.Y < (AbsPos.Y - 20 - 1) or MousePos.Y > AbsPos.Y + AbsSize.Y then
 
                     Dropdown:CloseDropdown();
                 end;
