@@ -1,9 +1,3 @@
-<!-- 背景图 + 横幅 -->
-<div align="center">
-  <img src="https://github.com/eksan966/eksan966/blob/main/%E8%83%8C%E6%99%AF%E5%9B%BE.png" alt="banner" width="100%" height="300px"/>
-</div>
-
----
 
 ## 关于我
 - **XI（ Atomic ）创始人**
